@@ -3,6 +3,8 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
 import numpy as np
 import matplotlib.pyplot as plt
+import PyPDF2
+import re
 
 # Extended training data with 15 examples per author
 texts = [
@@ -69,28 +71,52 @@ clf.fit(X, labels)
 st.title("Linguistic Fingerprint Identifier")
 
 st.markdown("""
-**Author Profiles:**
-- 👤 **Author A – Tech Expert**: Focused on AI, data science, and futuristic technology. Language is factual, visionary, and technical.
-- 👩‍⚖️ **Author B – Legal Professional**: Writes about law, compliance, and justice systems. Formal tone with legal vocabulary.
-- 🧍‍♀️ **Author C – Conversational**: Informal, personal style like chats, texts, and social media posts.
+**About the Application – Linguistic Fingerprint Identifier**  
+This tool enables the analysis of written language to identify stylistic patterns that may be characteristic of a particular type of author. Using natural language processing and machine learning, the system estimates the likelihood that a given text corresponds to one of the predefined author profiles.  
+
+The application may be of interest in legal, forensic, or regulatory contexts where authorship attribution, stylistic analysis, or text comparison is of relevance. Please note that this is a demonstrational prototype; analytical results should be interpreted with caution and not be considered conclusive evidence.  
+
+**Available Author Profiles:**  
+- **Author A:** Technical expert in AI and data science  
+- **Author B:** Legal professional with formal writing style  
+- **Author C:** Informal, conversational style typical of everyday communication
 """)
 
-st.write("Paste a text and see which author's style it resembles most.")
+conversation_text = st.text_area("Paste a conversation between two people (use 'Person 1:' and 'Person 2:' to mark their lines):", height=300)
 
-input_text = st.text_area("Your text to analyze:", height=200)
+if st.button("Analyze Conversation") and conversation_text.strip():
+    # Separate text per person
+    person1_lines = re.findall(r"Person 1:(.*)", conversation_text)
+    person2_lines = re.findall(r"Person 2:(.*)", conversation_text)
 
-if st.button("Analyze") and input_text.strip():
-    X_new = vectorizer.transform([input_text])
-    proba = clf.predict_proba(X_new)[0]
-    pred_author = clf.classes_[np.argmax(proba)]
-    confidence = np.max(proba) * 100
+    text1 = " ".join(person1_lines).strip()
+    text2 = " ".join(person2_lines).strip()
 
-    st.success(f"Predicted Author: {pred_author} ({confidence:.2f}% match)")
+    if text1:
+        X1 = vectorizer.transform([text1])
+        proba1 = clf.predict_proba(X1)[0]
+        pred1 = clf.classes_[np.argmax(proba1)]
+        conf1 = np.max(proba1) * 100
+        st.markdown(f"**Person 1 → {pred1} ({conf1:.2f}% match)**")
 
-    # Show probability bar chart
-    st.write("### Match Probability")
-    fig, ax = plt.subplots()
-    ax.bar(clf.classes_, proba * 100)
-    ax.set_ylabel("Probability (%)")
-    ax.set_ylim(0, 100)
-    st.pyplot(fig)
+        fig1, ax1 = plt.subplots()
+        ax1.bar(clf.classes_, proba1 * 100)
+        ax1.set_ylabel("Probability (%)")
+        ax1.set_title("Person 1")
+        ax1.set_ylim(0, 100)
+        st.pyplot(fig1)
+
+    if text2:
+        X2 = vectorizer.transform([text2])
+        proba2 = clf.predict_proba(X2)[0]
+        pred2 = clf.classes_[np.argmax(proba2)]
+        conf2 = np.max(proba2) * 100
+        st.markdown(f"**Person 2 → {pred2} ({conf2:.2f}% match)**")
+
+        fig2, ax2 = plt.subplots()
+        ax2.bar(clf.classes_, proba2 * 100)
+        ax2.set_ylabel("Probability (%)")
+        ax2.set_title("Person 2")
+        ax2.set_ylim(0, 100)
+        st.pyplot(fig2)
+
