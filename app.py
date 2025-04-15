@@ -3,7 +3,6 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
 import numpy as np
 import matplotlib.pyplot as plt
-import PyPDF2
 import re
 
 # Extended training data with 15 examples per author
@@ -86,6 +85,7 @@ conversation_text = st.text_area("Paste a conversation between two people (use '
 
 if st.button("Analyze Conversation") and conversation_text.strip():
     # Separate text per person
+    import re
     person1_lines = re.findall(r"Person 1:(.*)", conversation_text)
     person2_lines = re.findall(r"Person 2:(.*)", conversation_text)
 
@@ -99,6 +99,7 @@ if st.button("Analyze Conversation") and conversation_text.strip():
         conf1 = np.max(proba1) * 100
         st.markdown(f"**Person 1 → {pred1} ({conf1:.2f}% match)**")
 
+        import matplotlib.pyplot as plt
         fig1, ax1 = plt.subplots()
         ax1.bar(clf.classes_, proba1 * 100)
         ax1.set_ylabel("Probability (%)")
@@ -119,4 +120,3 @@ if st.button("Analyze Conversation") and conversation_text.strip():
         ax2.set_title("Person 2")
         ax2.set_ylim(0, 100)
         st.pyplot(fig2)
-
